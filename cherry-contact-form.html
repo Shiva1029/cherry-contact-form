@@ -1,0 +1,311 @@
+<link rel="import"
+      href="bower_components/polymer/polymer.html">
+<!-- <link rel="import"
+      href="https://www.polymer-project.org/1.0/samples/components/polymer/polymer.html"> -->
+
+
+<dom-module id="cherry-contact-form">
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+    <style type="text/css">
+        .inputFieldName {
+            display: none;
+        }
+
+        .inputFieldEmail {
+            display: none;
+        }
+
+        /* #Message_Max_Length  {
+          display: none;
+          } */
+    </style>
+
+    <template>
+        <div class="container">
+            <div id="contactBody">
+                <form id="contactForm" role="form" action="" method="post">
+                    <div class="form-group" id="fnameDiv">
+                        <label for="fname">First Name:</label>
+                        <input type="text" class="form-control" id="fname" name="fname" tabindex="1" autofocus required>
+                    </div>
+                    <div class="form-group" id="lnameDiv">
+                        <label for="fname">Last Name:</label>
+                        <input type="text" class="form-control" id="lname" name="lname" tabindex="2" required>
+                    </div>
+                    <div class="form-group" id="emailDiv">
+                        <label for="email">Email address:</label>
+                        <input type="email" class="form-control" id="email" name="email" tabindex="3" required>
+                    </div>
+                    <div class="form-group" id="commentDiv">
+                        <label for="comment">Message:</label>
+                        <textarea class="form-control" rows="5" id="comment" name="comment" tabindex="4"
+                                  required></textarea>
+                        <br>
+                        <p id="contactCount"></p>
+                    </div>
+                    <div id="reCAPTCHAElement"></div>
+                    <div class="inputFieldName">
+                        Please leave this blank
+                        <input type="text" name="inputFieldName" value=""/>
+                    </div>
+                    <div class="inputFieldEmail">
+                        Please do not change this field
+                        <input type="email" name="inputFieldEmail"/>
+                    </div>
+                    <!-- <div id="Message_Max_Length">{{message_max_length}}</div>  -->
+                    <button type="submit" class="btn btn-info"><span class="glyphicon glyphicon-envelope"></span> Send
+                    </button>
+                </form>
+            </div>
+        </div>
+    </template>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script src="https://www.google.com/recaptcha/api.js?onload=onloadreCaptchaCallback&render=explicit"
+            async defer></script>
+    <script src="scripts/jsInit.js"></script>
+    <script>
+
+        Polymer({
+            is: "cherry-contact-form",
+            properties: {
+                reCaptcha_Key: {
+                    type: String,
+                    value: ""
+                }
+                /* ,
+                 message_max_length: {
+                 type: Number,
+                 value: 1024
+                 }   */
+            }
+        });
+
+        $(function () {
+
+            //Initializing globally after doc loads
+            var contactFnameError = 0;
+            var contactLnameError = 0;
+            var contactEmailError = 0;
+            var contactCommentError = 0;
+
+            /*$("#Message_Max_Length").hide();
+
+             Message_Max_Length = Number($("#Message_Max_Length").text()); */
+            $("textarea").attr("maxlength", Message_Max_Length);
+
+            $(".inputFieldEmail").hide();
+            $('input[name="inputFieldEmail"]').attr("value", adminEmailCheck);
+
+            // On keyup callback
+            $("#comment").keyup(function () {
+                var that = $("#comment");
+                countChar(that.val());
+            });
+
+
+            // Remove the error show on focus and retype
+            $("#fname").focus(function () {
+                contactFnameError = 0;
+                $("#fnameDiv").attr("class", "form-group");
+                $("#fnameError").remove();
+                $("#fname").removeAttr("placeholder");
+            });
+
+            $("#lname").focus(function () {
+                contactLnameError = 0;
+                $("#lnameDiv").attr("class", "form-group");
+                $("#lnameError").remove();
+                $("#lname").removeAttr("placeholder");
+            });
+
+            $("email").focus(function () {
+                contactEmailError = 0;
+                $("#emailDiv").attr("class", "form-group");
+                $("#emailError").remove();
+                $("#email").removeAttr("placeholder");
+            });
+
+            $("comment").focus(function () {
+                contactCommentError = 0;
+                $("#commentDiv").attr("class", "form-group");
+                $("#commentError").remove();
+                $("#comment").removeAttr("placeholder");
+            });
+
+
+            $("form").submit(function (e) {
+                e.preventDefault();
+
+                grecaptcha.reset();
+
+                if (!tick) {
+                    $("#reCAPTCHAElement").css({
+                        'border-style': 'solid',
+                        'border-width': 'medium',
+                        'border-color': 'red'
+                    });
+                } //end if
+
+                else {  // Remove the Captcha issue on re-submit if it is set
+                    var cap = $("#reCAPTCHAElement");
+                    cap.css({
+                        'border-style': '',
+                        'border-width': '',
+                        'border-color': ''
+                    });
+                }
+
+                if ($("#fname").val() == "" || /[^a-zA-Z]+/.test($("#fname").val())) {
+                    contactFnameError = 1;
+                    $("#fnameDiv").attr("class", "form-group has-error has-feedback");
+                    $("#fnameDiv").append("<span class='glyphicon glyphicon-remove form-control-feedback' id='fnameError'></span>");
+                    $("#fname").attr("placeholder", "Please! Enter a Valid First Name!");
+                }
+                else if ($("#fname").val().length < 3 || $("#fname").val().length > 24) {
+                    contactFnameError = 1;
+                    $("#fnameDiv").attr("class", "form-group has-error has-feedback");
+                    $("#fnameDiv").append("<span class='glyphicon glyphicon-remove form-control-feedback' id='fnameError'></span>");
+                    $("#fname").attr("placeholder", "E-Mail must be 3-24 characters only!");
+                }
+
+                if ($("#lname").val() == "" || /[^a-zA-Z]+/.test($("#lname").val())) {
+                    contactLnameError = 1;
+                    $("#lnameDiv").attr("class", "form-group has-error has-feedback");
+                    $("#lnameDiv").append("<span class='glyphicon glyphicon-remove form-control-feedback' id='lnameError'></span>");
+                    $("#lname").attr("placeholder", "Please! Enter a Valid First Name!");
+                }
+                else if ($("#lname").val().length < 3 || $("#lname").val().length > 24) {
+                    contactLnameError = 1;
+                    $("#lnameDiv").attr("class", "form-group has-error has-feedback");
+                    $("#lnameDiv").append("<span class='glyphicon glyphicon-remove form-control-feedback' id='lnameError'></span>");
+                    $("#lname").attr("placeholder", "E-Mail must be 3-24 characters only!");
+                }
+
+                if (!validateEmail($("#email").val())) {
+                    contactEmailError = 1;
+                    $("#emailDiv").attr("class", "form-group has-error has-feedback");
+                    $("#emailDiv").append("<span class='glyphicon glyphicon-remove form-control-feedback' id='emailError'></span>");
+                    $("#email").attr("placeholder", "Please! Enter a Valid E-Mail Address!");
+                }
+
+                else if ($("#email").val().length < 6 || $("#email").val().length > 45) {
+                    contactEmailError = 1;
+                    $("#emailDiv").attr("class", "form-group has-error has-feedback");
+                    $("#emailDiv").append("<span class='glyphicon glyphicon-remove form-control-feedback' id='emailError'></span>");
+                    $("#email").attr("placeholder", "E-Mail must be 6-45 characters only!");
+                }
+
+                if ($("#comment").val() == "") {
+                    contactCommentError = 1;
+                    $("#commentDiv").attr("class", "form-group has-error has-feedback");
+                    $("#commentDiv").append("<span class='glyphicon glyphicon-remove form-control-feedback' id='commentError'></span>");
+                    $("#comment").attr("placeholder", "Please! Enter your message!");
+                }
+
+                else if ($("#comment").val().length > Message_Max_Length) {
+                    contactCommentError = 1;
+                    $("#commentDiv").attr("class", "form-group has-error has-feedback");
+                    $("#commentDiv").append("<span class='glyphicon glyphicon-remove form-control-feedback' id='commentError'></span>");
+                    $("#comment").attr("placeholder", "Only " + Message_Max_Length + " characters!");
+                }
+
+                if (contactFnameError == 0 && contactLnameError == 0 && contactEmailError == 0 && contactCommentError == 0 && tick) {
+                    //If all goes well then, serialize and submit the form and do the same check in the .php file
+                    emailSend = $("#contactForm").serialize();
+                    emailSend = emailSend.replace("&g-recaptcha-response=", "");
+                    emailSend = emailSend + '&g-recaptcha-response=' + storeResponse;
+                    console.log(emailSend);
+                    $.ajax({
+                        url: "mail.php", method: "POST", data: emailSend, success: function (result) {
+                            if (result == "sent") {
+                                //show sent
+                                //clear the previous message
+                                if ($("#contactFooterMesg").length)
+                                    $("#contactFooterMesg").remove();
+
+                                $("#contactCount").html(""); // Clear number span
+                                var contactBody = $("#contactBody").html();
+                                $("#contactBody").html("<div id='contactFooterMesg' class='alert alert-success'><span class='glyphicon glyphicon-ok'></span> <strong>Success!</strong> Message Sent!</div>");
+                                $("#contactFooterMesg").fadeOut(1000, function () {
+                                    $("#triggerClose").trigger('click')
+                                    $("#contactBody").html(contactBody);
+                                });
+                            }
+
+                            else {
+                                //clear the previous message
+                                if ($("#contactFooterMesg").length)
+                                    $("#contactFooterMesg").remove();
+
+                                if (result.slice(-5) != "error") {
+                                    $("#contactBody").append("<br><div id='contactFooterMesg' class='alert alert-danger'><span class='glyphicon glyphicon-remove'></span> <strong>Sorry!</strong> Please check :( <br>" + result + "</div>");
+                                    $("#contactFooterMesg").fadeOut(3000, function () {
+                                        this.remove();
+                                    });
+                                }
+
+                                else {
+                                    $("#contactBody").append("<br><div id='contactFooterMesg' class='alert alert-danger'><span class='glyphicon glyphicon-remove'></span> <strong>Sorry!</strong> Something went wrong :( <br>Please, try again.</div>");
+                                    $("#contactFooterMesg").fadeOut(3000, function () {
+                                        this.remove();
+                                    });
+                                }
+
+                            }
+
+                        }
+                    });
+
+                } // End if condition for errors before Posting
+
+
+            }); // End Form Submit
+
+        });
+
+         /*
+         var Message_Max_Length = document.getElementsByTagName("textarea")[0].getAttribute("maxlength");
+         var reCaptcha_Key="6LcmwwkTAAAAAAzPHKo6ttjjnKbivDL0L3KFHj49"
+         */
+
+        var adminEmailCheck = "email@example.com"; // Must be same in the backend file
+
+        function validateEmail(email) {
+            var emailReg = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
+            return emailReg.test(email);
+        }
+
+        function countChar(currentValue) {
+            currentCount = currentValue.length;
+            if (currentValue.length > Message_Max_Length) {
+                $("#comment").val(currentValue.substring(0, Message_Max_Length - 1));
+                currentCount = Message_Max_Length;
+            }
+            $("#contactCount").html("<mark>" + (Message_Max_Length - currentCount) + "</mark> left.");
+        }
+
+        // Start Google reCaptcha //
+        var tick = false;
+        var storeResponse = "";
+        var onloadreCaptchaCallback = function () {
+            grecaptcha.render('reCAPTCHAElement', {
+                'sitekey': reCaptcha_Key,
+                'tabindex': '5',
+                'callback': function (response) {
+                    if (response){
+                        tick = true;
+                        storeResponse = response;
+                    }
+                    else
+                        tick = false;
+                }
+            });
+        };
+        // End Google reCaptcha //
+
+
+    </script>
+</dom-module>
